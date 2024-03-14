@@ -2,7 +2,7 @@
 
 创建：
 ```shell
-git clone https://github.com/sylar-yin/chat_room.git
+git clone https://github.com/ejgdlyz/chat_room.git
 cd chat_room
 git submodule update --init --recursive
 ```
