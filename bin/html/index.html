@@ -1,0 +1,109 @@
+<html>
+    <head>
+        <title> sylar chat room</title>
+        <meta charset="UTF-8">
+        <style>
+            body {
+                background-color: #f0f0f0;
+                font-family: 'Helvetica', sans-serif;
+                margin: 0;
+                padding: 0;
+            }
+            #container {
+                width: 80%;
+                margin: auto;
+            }
+            h1 {
+                text-align: center;
+                color: #333;
+            }
+            p {
+                color: #333;
+            }
+            #chatroom {
+                background-color: white;
+                border: 1px solid #ccc;
+                border-radius: 5px;
+                padding: 20px;
+                margin: 20px 0;
+                height: 300px;
+                overflow-y: auto;
+                box-shadow: 0px 0px 5px 0px rgba(0,0,0,0.1);
+            }
+            input[type="text"] {
+                padding: 5px;
+                border: 1px solid #ccc;
+                border-radius: 5px;
+            }
+            button {
+                padding: 5px 10px;
+                background-color: #4CAF50;
+                border: none;
+                color: white;
+                cursor: pointer;
+                font-size: 16px;
+                border-radius: 5px;
+                margin-left: 5px;
+            }
+            button:hover {
+                background-color: #45a049;
+            }
+        </style>
+    </head>
+    <script type = "text/javascript">
+        function write_msg(msg) {
+            document.getElementById("chatroom").innerHTML += msg + "<br/>";
+        }
+
+        var websocket = null;
+        function login() {
+            websocket = new WebSocket("ws://192.168.233.128:8070/sylar/chat");
+            websocket.onerror = function() {
+                write_msg("onerror");
+            }
+
+            websocket.onopen = function() {
+                var login_msg = {};
+                login_msg.type = "login_request";
+                login_msg.name = document.getElementById("uname").value;;
+                websocket.send(JSON.stringify(login_msg));
+            }
+
+            websocket.onmessage = function(evt) {
+                // alert("onmessage: " + obj);
+                var obj = JSON.parse(evt.data);
+                if (obj.type == "user_enter") {
+                    write_msg("[" + obj.time + "] [" + obj.name + "] 加入聊天室");
+                } else if (obj.type == "user_leave") {
+                    write_msg("[" + obj.time + "] [" + obj.name + "] 离开聊天室");
+                } else if (obj.type == "msg") {
+                    write_msg("[" + obj.time + "] [" + obj.name + "] " + obj.msg);
+                } else if (obj.type == "login_response") {
+                    write_msg("[" + obj.result + "] [" + obj.msg + "]");
+                } else {
+                    // write_msg("[msg type error]");
+                }
+            }
+
+            websocket.onclose = function() {
+                write_msg("服务器断开连接");
+            }
+        }
+
+        function sendmsg() {
+            var msg = {};
+            msg.type = "send_request";
+            msg.msg = document.getElementById("msg").value;;
+            websocket.send(JSON.stringify(msg));
+    }
+    </script>
+
+    <div id="container">
+        <h1>Welcome to Sylar Chat Room!</h1>
+        <p>昵称: <input id="uname" type="text"/><button onclick="login()">登录</button></p>
+        <p>聊天信息: <input id="msg" type="text"/><button onclick="sendmsg()">发送</button></p>
+        <div id="chatroom"> 
+            <!-- Message area --> 
+        </div>
+    </div>
+</html>
